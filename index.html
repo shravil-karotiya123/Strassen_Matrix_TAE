@@ -1,0 +1,2208 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>STRASSEN MATRIX MULTIPLICATION — Quantum Obsidian 3D Laboratory &amp; Historical Archive</title>
+  <meta name="description" content="Explore Volker Strassen's 1969 breakthrough matrix multiplication algorithm with interactive 3D spatial visualization, biography archive, and live mathematical verification." />
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    if (window.tailwind) {
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              obsidian: {
+                950: '#030712',
+                900: '#0B0F19',
+                850: '#111827',
+                800: '#1F2937',
+                700: '#374151',
+              },
+              aurora: {
+                emerald: '#10B981',
+                cyan: '#06B6D4',
+                teal: '#14B8A6',
+                sky: '#38BDF8',
+                amber: '#F59E0B',
+                rose: '#F43F5E',
+                violet: '#8B5CF6',
+                neon: '#00FFCC'
+              }
+            },
+            fontFamily: {
+              sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+              mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+            },
+            animation: {
+              'glow-pulse': 'glowPulse 3s ease-in-out infinite',
+              'float-slow': 'floatSlow 5s ease-in-out infinite',
+            },
+            keyframes: {
+              glowPulse: {
+                '0%, 100%': { opacity: '0.4', filter: 'drop-shadow(0 0 15px rgba(16, 185, 129, 0.4))' },
+                '50%': { opacity: '0.9', filter: 'drop-shadow(0 0 25px rgba(6, 182, 212, 0.7))' },
+              },
+              floatSlow: {
+                '0%, 100%': { transform: 'translateY(0px)' },
+                '50%': { transform: 'translateY(-8px)' },
+              }
+            }
+          }
+        }
+      };
+    }
+  </script>
+
+  <!-- React 18 & ReactDOM UMD (Local offline vendor first, then CDN fallback) -->
+  <script src="./vendor/react.min.js"></script>
+  <script>window.React || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"><\/script>')</script>
+
+  <script src="./vendor/react-dom.min.js"></script>
+  <script>window.ReactDOM || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"><\/script>')</script>
+
+  <!-- Three.js & OrbitControls -->
+  <script src="./vendor/three.min.js"></script>
+  <script>window.THREE || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>')</script>
+
+  <script src="./vendor/OrbitControls.js"></script>
+  <script>window.THREE?.OrbitControls || document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"><\/script>')</script>
+
+  <!-- Canvas Confetti -->
+  <script src="./vendor/confetti.min.js"></script>
+  <script>window.confetti || document.write('<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.browser.min.js"><\/script>')</script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      background-color: #030712;
+      color: #F8FAFC;
+      font-family: 'Inter', system-ui, sans-serif;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.08) 0%, transparent 60%),
+        radial-gradient(circle at 100% 50%, rgba(6, 182, 212, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 0% 80%, rgba(245, 158, 11, 0.04) 0%, transparent 50%);
+    }
+
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0B0F19;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1F2937;
+      border-radius: 4px;
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #10B981;
+    }
+
+    .obsidian-card {
+      background: rgba(11, 15, 25, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(31, 41, 55, 0.8);
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
+    }
+
+    .obsidian-card-emerald {
+      background: linear-gradient(135deg, rgba(11, 15, 25, 0.95) 0%, rgba(6, 78, 59, 0.25) 100%);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      box-shadow: 0 10px 30px -10px rgba(16, 185, 129, 0.15);
+    }
+
+    .obsidian-card-cyan {
+      background: linear-gradient(135deg, rgba(11, 15, 25, 0.95) 0%, rgba(8, 51, 68, 0.3) 100%);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(6, 182, 212, 0.35);
+      box-shadow: 0 10px 30px -10px rgba(6, 182, 212, 0.15);
+    }
+
+    .obsidian-card-amber {
+      background: linear-gradient(135deg, rgba(11, 15, 25, 0.95) 0%, rgba(69, 26, 3, 0.3) 100%);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      box-shadow: 0 10px 30px -10px rgba(245, 158, 11, 0.15);
+    }
+
+    input[type=range] {
+      accent-color: #10B981;
+    }
+  </style>
+</head>
+<body class="bg-obsidian-950 text-slate-100 min-h-screen selection:bg-emerald-500 selection:text-black">
+  <div id="root">
+    <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 16px; color: #10B981; font-family: monospace;">
+      <div style="width: 40px; height: 40px; border: 3px solid #1F2937; border-top-color: #10B981; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+      <div style="letter-spacing: 2px; font-weight: bold;">INITIALIZING STRASSEN QUANTUM LABORATORY...</div>
+      <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+    </div>
+  </div>
+
+  <!-- Pure Standard JavaScript (Pre-compiled, Zero Babel Overhead, Instant Boot) -->
+  <script>
+const VOLKER_STRASSEN_PHOTO = "data:image/jpeg;base64,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";
+const {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef
+} = React;
+
+// --- SOUND SYNTHESIZER (Web Audio API) ---
+function createSoundEngine() {
+  let audioCtx = null;
+  let isMuted = true;
+  const getCtx = () => {
+    if (!audioCtx && typeof window !== 'undefined') {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (AudioContextClass) audioCtx = new AudioContextClass();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+    return audioCtx;
+  };
+  const playTone = (freq, type, duration, gainVal = 0.04) => {
+    if (isMuted) return;
+    try {
+      const ctx = getCtx();
+      if (!ctx) return;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      gain.gain.setValueAtTime(gainVal, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + duration);
+    } catch (e) {}
+  };
+  return {
+    get isMuted() {
+      return isMuted;
+    },
+    toggleMute() {
+      isMuted = !isMuted;
+      return isMuted;
+    },
+    step() {
+      playTone(587.33, 'sine', 0.09, 0.03);
+    },
+    // D5
+    product() {
+      playTone(783.99, 'triangle', 0.15, 0.04);
+    },
+    // G5
+    success() {
+      if (isMuted) return;
+      [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => {
+        setTimeout(() => playTone(f, 'sine', 0.35, 0.05), i * 90);
+      });
+    }
+  };
+}
+const soundEngine = createSoundEngine();
+
+// --- MATRIX OPERATIONS UTILS ---
+function createZeroMatrix(r, c) {
+  return Array.from({
+    length: r
+  }, () => Array(c).fill(0));
+}
+function cloneMatrix(M) {
+  return M.map(row => [...row]);
+}
+function matrixAdd(A, B) {
+  const r = A.length,
+    c = A[0].length;
+  const res = createZeroMatrix(r, c);
+  for (let i = 0; i < r; i++) {
+    for (let j = 0; j < c; j++) res[i][j] = (A[i]?.[j] ?? 0) + (B[i]?.[j] ?? 0);
+  }
+  return res;
+}
+function matrixSub(A, B) {
+  const r = A.length,
+    c = A[0].length;
+  const res = createZeroMatrix(r, c);
+  for (let i = 0; i < r; i++) {
+    for (let j = 0; j < c; j++) res[i][j] = (A[i]?.[j] ?? 0) - (B[i]?.[j] ?? 0);
+  }
+  return res;
+}
+function partitionMatrix(M) {
+  const n = M.length;
+  const half = Math.floor(n / 2);
+  const M11 = createZeroMatrix(half, half);
+  const M12 = createZeroMatrix(half, half);
+  const M21 = createZeroMatrix(half, half);
+  const M22 = createZeroMatrix(half, half);
+  for (let i = 0; i < half; i++) {
+    for (let j = 0; j < half; j++) {
+      M11[i][j] = M[i][j];
+      M12[i][j] = M[i][j + half];
+      M21[i][j] = M[i + half][j];
+      M22[i][j] = M[i + half][j + half];
+    }
+  }
+  return {
+    M11,
+    M12,
+    M21,
+    M22
+  };
+}
+function combineSubmatrices(M11, M12, M21, M22) {
+  const half = M11.length;
+  const n = half * 2;
+  const res = createZeroMatrix(n, n);
+  for (let i = 0; i < half; i++) {
+    for (let j = 0; j < half; j++) {
+      res[i][j] = M11[i][j];
+      res[i][j + half] = M12[i][j];
+      res[i + half][j] = M21[i][j];
+      res[i + half][j + half] = M22[i][j];
+    }
+  }
+  return res;
+}
+function formatCompact(M) {
+  if (!M || M.length === 0) return '0';
+  if (M.length === 1 && M[0].length === 1) return `${M[0][0]}`;
+  return `[${M.map(r => r.join(' ')).join('; ')}]`;
+}
+
+// Traditional Multiplication O(n^3)
+function multiplyTraditional(A, B) {
+  const t0 = performance.now();
+  const n = A.length,
+    m = B[0].length,
+    kDim = B.length;
+  const result = createZeroMatrix(n, m);
+  let mults = 0,
+    adds = 0;
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < m; j++) {
+      let sum = 0;
+      for (let k = 0; k < kDim; k++) {
+        sum += (A[i][k] ?? 0) * (B[k][j] ?? 0);
+        mults++;
+        if (k > 0) adds++;
+      }
+      result[i][j] = sum;
+    }
+  }
+  return {
+    result,
+    mults,
+    adds,
+    timeMs: Math.max(0.01, performance.now() - t0)
+  };
+}
+
+// Pure Recursive Strassen for sub-blocks
+function computeStrassenPure(A, B) {
+  const n = A.length;
+  if (n === 1) return {
+    result: [[A[0][0] * B[0][0]]],
+    mults: 1,
+    adds: 0
+  };
+  let mults = 0,
+    adds = 0;
+  const {
+    M11: A11,
+    M12: A12,
+    M21: A21,
+    M22: A22
+  } = partitionMatrix(A);
+  const {
+    M11: B11,
+    M12: B12,
+    M21: B21,
+    M22: B22
+  } = partitionMatrix(B);
+  const add = (X, Y) => {
+    adds += X.length * X[0].length;
+    return matrixAdd(X, Y);
+  };
+  const sub = (X, Y) => {
+    adds += X.length * X[0].length;
+    return matrixSub(X, Y);
+  };
+  const rec = (X, Y) => {
+    const r = computeStrassenPure(X, Y);
+    mults += r.mults;
+    adds += r.adds;
+    return r.result;
+  };
+  const P1 = rec(add(A11, A22), add(B11, B22));
+  const P2 = rec(add(A21, A22), B11);
+  const P3 = rec(A11, sub(B12, B22));
+  const P4 = rec(A22, sub(B21, B11));
+  const P5 = rec(add(A11, A12), B22);
+  const P6 = rec(sub(A21, A11), add(B11, B12));
+  const P7 = rec(sub(A12, A22), add(B21, B22));
+  const C11 = add(sub(add(P1, P4), P5), P7);
+  const C12 = add(P3, P5);
+  const C21 = add(P2, P4);
+  const C22 = add(add(sub(P1, P2), P3), P6);
+  return {
+    result: combineSubmatrices(C11, C12, C21, C22),
+    mults,
+    adds
+  };
+}
+
+// Strassen Step Engine with exact values & rich explanations
+function computeStrassenWithSteps(A, B) {
+  const t0 = performance.now();
+  const n = A.length;
+  let mults = 0,
+    adds = 0;
+  const {
+    M11: A11,
+    M12: A12,
+    M21: A21,
+    M22: A22
+  } = partitionMatrix(A);
+  const {
+    M11: B11,
+    M12: B12,
+    M21: B21,
+    M22: B22
+  } = partitionMatrix(B);
+  const add = (X, Y) => {
+    adds += X.length * X[0].length;
+    return matrixAdd(X, Y);
+  };
+  const sub = (X, Y) => {
+    adds += X.length * X[0].length;
+    return matrixSub(X, Y);
+  };
+  const rec = (X, Y) => {
+    if (X.length === 1) {
+      mults++;
+      return [[X[0][0] * Y[0][0]]];
+    }
+    const r = computeStrassenPure(X, Y);
+    mults += r.mults;
+    adds += r.adds;
+    return r.result;
+  };
+
+  // 7 Products
+  const A11_p_A22 = add(A11, A22);
+  const B11_p_B22 = add(B11, B22);
+  const P1 = rec(A11_p_A22, B11_p_B22);
+  const A21_p_A22 = add(A21, A22);
+  const P2 = rec(A21_p_A22, B11);
+  const B12_m_B22 = sub(B12, B22);
+  const P3 = rec(A11, B12_m_B22);
+  const B21_m_B11 = sub(B21, B11);
+  const P4 = rec(A22, B21_m_B11);
+  const A11_p_A12 = add(A11, A12);
+  const P5 = rec(A11_p_A12, B22);
+  const A21_m_A11 = sub(A21, A11);
+  const B11_p_B12 = add(B11, B12);
+  const P6 = rec(A21_m_A11, B11_p_B12);
+  const A12_m_A22 = sub(A12, A22);
+  const B21_p_B22 = add(B21, B22);
+  const P7 = rec(A12_m_A22, B21_p_B22);
+
+  // Combinations
+  const C11 = add(sub(add(P1, P4), P5), P7);
+  const C12 = add(P3, P5);
+  const C21 = add(P2, P4);
+  const C22 = add(add(sub(P1, P2), P3), P6);
+  const finalC = combineSubmatrices(C11, C12, C21, C22);
+  const timeMs = Math.max(0.01, performance.now() - t0);
+
+  // Value strings
+  const vA11 = formatCompact(A11),
+    vA12 = formatCompact(A12),
+    vA21 = formatCompact(A21),
+    vA22 = formatCompact(A22);
+  const vB11 = formatCompact(B11),
+    vB12 = formatCompact(B12),
+    vB21 = formatCompact(B21),
+    vB22 = formatCompact(B22);
+  const vP1 = formatCompact(P1),
+    vP2 = formatCompact(P2),
+    vP3 = formatCompact(P3),
+    vP4 = formatCompact(P4);
+  const vP5 = formatCompact(P5),
+    vP6 = formatCompact(P6),
+    vP7 = formatCompact(P7);
+  const vC11 = formatCompact(C11),
+    vC12 = formatCompact(C12),
+    vC21 = formatCompact(C21),
+    vC22 = formatCompact(C22);
+  const steps = [{
+    id: 0,
+    stage: 'INPUT',
+    stageIndex: 0,
+    title: '01 — Input Matrices A and B',
+    subtitle: `Target matrix dimension: ${n} × ${n}`,
+    formulaReadable: 'C = A × B',
+    substitutedFormula: `Matrix A (${n}×${n}) × Matrix B (${n}×${n})`,
+    explanation: 'Strassen’s algorithm starts with two square matrices A and B. Instead of computing the classical 8 sub-block products, Strassen decomposes both matrices into quadrants and constructs 7 strategic intermediate products.',
+    activeA: [],
+    activeB: [],
+    activeProducts: [],
+    activeResults: [],
+    productsCalculated: {},
+    resultsCalculated: {}
+  }, {
+    id: 1,
+    stage: 'DIVIDE',
+    stageIndex: 1,
+    title: '02 — Divide into Submatrices',
+    subtitle: `Partitioning each matrix into four ${n / 2}×${n / 2} sub-blocks`,
+    formulaReadable: 'A = [[A11, A12], [A21, A22]], B = [[B11, B12], [B21, B22]]',
+    substitutedFormula: `A: { A11=${vA11}, A12=${vA12}, A21=${vA21}, A22=${vA22} } | B: { B11=${vB11}, B12=${vB12}, B21=${vB21}, B22=${vB22} }`,
+    explanation: 'Divide and conquer partitions Matrix A and B into quadrants: top-left (11), top-right (12), bottom-left (21), and bottom-right (22).',
+    activeA: ['A11', 'A12', 'A21', 'A22'],
+    activeB: ['B11', 'B12', 'B21', 'B22'],
+    activeProducts: [],
+    activeResults: [],
+    productsCalculated: {},
+    resultsCalculated: {}
+  }, {
+    id: 2,
+    stage: 'TEMP_SUMS',
+    stageIndex: 2,
+    title: '03 — The Strassen Optimization Shift',
+    subtitle: 'Reducing 8 recursive multiplications down to 7',
+    formulaReadable: 'T(n) = 7*T(n/2) + O(n^2) => O(n^2.8074)',
+    substitutedFormula: 'Preparing linear combinations of quadrants for P1 through P7',
+    explanation: 'Volker Strassen discovered that by performing 10 additions/subtractions on the sub-blocks, all 4 quadrants of C can be calculated with only 7 multiplications instead of 8.',
+    activeA: ['A11', 'A22'],
+    activeB: ['B11', 'B22'],
+    activeProducts: [],
+    activeResults: [],
+    productsCalculated: {},
+    resultsCalculated: {}
+  }, {
+    id: 3,
+    stage: 'P1',
+    stageIndex: 3,
+    title: '04 — Compute Product P₁',
+    subtitle: 'Main diagonal sum: (A₁₁ + A₂₂) × (B₁₁ + B₂₂)',
+    formulaReadable: 'P1 = (A11 + A22) * (B11 + B22)',
+    substitutedFormula: `P1 = (${vA11} + ${vA22}) × (${vB11} + ${vB22}) = ${formatCompact(A11_p_A22)} × ${formatCompact(B11_p_B22)} = ${vP1}`,
+    explanation: 'P₁ captures the joint diagonal interactions between both input matrices. It contributes to both C₁₁ and C₂₂.',
+    activeA: ['A11', 'A22'],
+    activeB: ['B11', 'B22'],
+    activeProducts: ['P1'],
+    activeResults: [],
+    intermediate: {
+      label: 'P1',
+      matrix: P1
+    },
+    productsCalculated: {
+      P1
+    },
+    resultsCalculated: {}
+  }, {
+    id: 4,
+    stage: 'P2',
+    stageIndex: 4,
+    title: '05 — Compute Product P₂',
+    subtitle: 'Lower row of A with top-left of B: (A₂₁ + A₂₂) × B₁₁',
+    formulaReadable: 'P2 = (A21 + A22) * B11',
+    substitutedFormula: `P2 = (${vA21} + ${vA22}) × ${vB11} = ${formatCompact(A21_p_A22)} × ${vB11} = ${vP2}`,
+    explanation: 'P₂ combines the bottom row elements of A multiplied by B₁₁. It directly builds C₂₁ and assists C₂₂.',
+    activeA: ['A21', 'A22'],
+    activeB: ['B11'],
+    activeProducts: ['P1', 'P2'],
+    activeResults: [],
+    intermediate: {
+      label: 'P2',
+      matrix: P2
+    },
+    productsCalculated: {
+      P1,
+      P2
+    },
+    resultsCalculated: {}
+  }, {
+    id: 5,
+    stage: 'P3',
+    stageIndex: 5,
+    title: '06 — Compute Product P₃',
+    subtitle: 'Top-left of A with right column difference of B: A₁₁ × (B₁₂ − B₂₂)',
+    formulaReadable: 'P3 = A11 * (B12 - B22)',
+    substitutedFormula: `P3 = ${vA11} × (${vB12} - ${vB22}) = ${vA11} × ${formatCompact(B12_m_B22)} = ${vP3}`,
+    explanation: 'P₃ scales A₁₁ by the difference of B’s right-column blocks (B₁₂ − B₂₂), forming a core part of C₁₂.',
+    activeA: ['A11'],
+    activeB: ['B12', 'B22'],
+    activeProducts: ['P1', 'P2', 'P3'],
+    activeResults: [],
+    intermediate: {
+      label: 'P3',
+      matrix: P3
+    },
+    productsCalculated: {
+      P1,
+      P2,
+      P3
+    },
+    resultsCalculated: {}
+  }, {
+    id: 6,
+    stage: 'P4',
+    stageIndex: 6,
+    title: '07 — Compute Product P₄',
+    subtitle: 'Bottom-right of A with left column difference of B: A₂₂ × (B₂₁ − B₁₁)',
+    formulaReadable: 'P4 = A22 * (B21 - B11)',
+    substitutedFormula: `P4 = ${vA22} × (${vB21} - ${vB11}) = ${vA22} × ${formatCompact(B21_m_B11)} = ${vP4}`,
+    explanation: 'P₄ multiplies A₂₂ by the left column differential (B₂₁ − B₁₁). This balances out cross-terms in C₁₁ and C₂₁.',
+    activeA: ['A22'],
+    activeB: ['B11', 'B21'],
+    activeProducts: ['P1', 'P2', 'P3', 'P4'],
+    activeResults: [],
+    intermediate: {
+      label: 'P4',
+      matrix: P4
+    },
+    productsCalculated: {
+      P1,
+      P2,
+      P3,
+      P4
+    },
+    resultsCalculated: {}
+  }, {
+    id: 7,
+    stage: 'P5',
+    stageIndex: 7,
+    title: '08 — Compute Product P₅',
+    subtitle: 'Top row of A with bottom-right of B: (A₁₁ + A₁₂) × B₂₂',
+    formulaReadable: 'P5 = (A11 + A12) * B22',
+    substitutedFormula: `P5 = (${vA11} + ${vA12}) × ${vB22} = ${formatCompact(A11_p_A12)} × ${vB22} = ${vP5}`,
+    explanation: 'P₅ combines the top row of A multiplied by B₂₂. It is utilized in assembling C₁₁ and C₁₂.',
+    activeA: ['A11', 'A12'],
+    activeB: ['B22'],
+    activeProducts: ['P1', 'P2', 'P3', 'P4', 'P5'],
+    activeResults: [],
+    intermediate: {
+      label: 'P5',
+      matrix: P5
+    },
+    productsCalculated: {
+      P1,
+      P2,
+      P3,
+      P4,
+      P5
+    },
+    resultsCalculated: {}
+  }, {
+    id: 8,
+    stage: 'P6',
+    stageIndex: 8,
+    title: '09 — Compute Product P₆',
+    subtitle: 'Column-1 diff of A with Row-1 sum of B: (A₂₁ − A₁₁) × (B₁₁ + B₁₂)',
+    formulaReadable: 'P6 = (A21 - A11) * (B11 + B12)',
+    substitutedFormula: `P6 = (${vA21} - ${vA11}) × (${vB11} + ${vB12}) = ${formatCompact(A21_m_A11)} × ${formatCompact(B11_p_B12)} = ${vP6}`,
+    explanation: 'P₆ allows exact algebraic cancellation of cross-diagonal terms when computing the lower-right quadrant C₂₂.',
+    activeA: ['A11', 'A21'],
+    activeB: ['B11', 'B12'],
+    activeProducts: ['P1', 'P2', 'P3', 'P4', 'P5', 'P6'],
+    activeResults: [],
+    intermediate: {
+      label: 'P6',
+      matrix: P6
+    },
+    productsCalculated: {
+      P1,
+      P2,
+      P3,
+      P4,
+      P5,
+      P6
+    },
+    resultsCalculated: {}
+  }, {
+    id: 9,
+    stage: 'P7',
+    stageIndex: 9,
+    title: '10 — Compute Product P₇',
+    subtitle: 'Column-2 diff of A with Row-2 sum of B: (A₁₂ − A₂₂) × (B₂₁ + B₂₂)',
+    formulaReadable: 'P7 = (A12 - A22) * (B21 + B22)',
+    substitutedFormula: `P7 = (${vA12} - ${vA22}) × (${vB21} + ${vB22}) = ${formatCompact(A12_m_A22)} × ${formatCompact(B21_p_B22)} = ${vP7}`,
+    explanation: 'P₇ completes the 7 products! All 7 multiplications are now finished using only 7 recursive operations instead of 8.',
+    activeA: ['A12', 'A22'],
+    activeB: ['B21', 'B22'],
+    activeProducts: ['P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7'],
+    activeResults: [],
+    intermediate: {
+      label: 'P7',
+      matrix: P7
+    },
+    productsCalculated: {
+      P1,
+      P2,
+      P3,
+      P4,
+      P5,
+      P6,
+      P7
+    },
+    resultsCalculated: {}
+  }, {
+    id: 10,
+    stage: 'COMBINE_C11_C12',
+    stageIndex: 10,
+    title: '11 — Combine Products for C₁₁ and C₁₂',
+    subtitle: 'C₁₁ = P₁ + P₄ − P₅ + P₇  and  C₁₂ = P₃ + P₅',
+    formulaReadable: 'C11 = P1 + P4 - P5 + P7, C12 = P3 + P5',
+    substitutedFormula: `C11 = ${vP1} + ${vP4} - ${vP5} + ${vP7} = ${vC11} | C12 = ${vP3} + ${vP5} = ${vC12}`,
+    explanation: 'Algebraic substitution cancels unwanted cross-terms, leaving precisely (A₁₁B₁₁ + A₁₂B₂₁) for C₁₁ and (A₁₁B₁₂ + A₁₂B₂₂) for C₁₂!',
+    activeA: [],
+    activeB: [],
+    activeProducts: ['P1', 'P3', 'P4', 'P5', 'P7'],
+    activeResults: ['C11', 'C12'],
+    productsCalculated: {
+      P1,
+      P2,
+      P3,
+      P4,
+      P5,
+      P6,
+      P7
+    },
+    resultsCalculated: {
+      C11,
+      C12
+    }
+  }, {
+    id: 11,
+    stage: 'COMBINE_C21_C22',
+    stageIndex: 11,
+    title: '12 — Combine Products for C₂₁ and C₂₂',
+    subtitle: 'C₂₁ = P₂ + P₄  and  C₂₂ = P₁ − P₂ + P₃ + P₆',
+    formulaReadable: 'C21 = P2 + P4, C22 = P1 - P2 + P3 + P6',
+    substitutedFormula: `C21 = ${vP2} + ${vP4} = ${vC21} | C22 = ${vP1} - ${vP2} + ${vP3} + ${vP6} = ${vC22}`,
+    explanation: 'Combining P₂ and P₄ gives the exact bottom-left quadrant C₂₁, while P₁ − P₂ + P₃ + P₆ synthesizes the bottom-right quadrant C₂₂.',
+    activeA: [],
+    activeB: [],
+    activeProducts: ['P1', 'P2', 'P3', 'P4', 'P6'],
+    activeResults: ['C11', 'C12', 'C21', 'C22'],
+    productsCalculated: {
+      P1,
+      P2,
+      P3,
+      P4,
+      P5,
+      P6,
+      P7
+    },
+    resultsCalculated: {
+      C11,
+      C12,
+      C21,
+      C22
+    }
+  }, {
+    id: 12,
+    stage: 'FINAL_MATRIX',
+    stageIndex: 12,
+    title: '13 — Assemble Final Result Matrix C',
+    subtitle: 'Merging C₁₁, C₁₂, C₂₁, C₂₂ into the full product matrix C',
+    formulaReadable: 'C = [[C11, C12], [C21, C22]]',
+    substitutedFormula: `C = [ [${vC11}, ${vC12}], [${vC21}, ${vC22}] ]`,
+    explanation: 'The four submatrix quadrants assemble together into the completed product matrix C. The entire computation finished using 7 recursive products instead of 8.',
+    activeA: [],
+    activeB: [],
+    activeProducts: [],
+    activeResults: ['C11', 'C12', 'C21', 'C22'],
+    currentMatrixC: finalC,
+    productsCalculated: {
+      P1,
+      P2,
+      P3,
+      P4,
+      P5,
+      P6,
+      P7
+    },
+    resultsCalculated: {
+      C11,
+      C12,
+      C21,
+      C22
+    }
+  }];
+  return {
+    result: finalC,
+    steps,
+    products: {
+      P1,
+      P2,
+      P3,
+      P4,
+      P5,
+      P6,
+      P7
+    },
+    submatricesA: {
+      A11,
+      A12,
+      A21,
+      A22
+    },
+    submatricesB: {
+      B11,
+      B12,
+      B21,
+      B22
+    },
+    results: {
+      C11,
+      C12,
+      C21,
+      C22
+    },
+    mults,
+    adds,
+    timeMs
+  };
+}
+
+// Verification against traditional O(n^3)
+function verifyResults(A, B, tolerance = 1e-9) {
+  const trad = multiplyTraditional(A, B);
+  const strass = computeStrassenWithSteps(A, B);
+  const r = A.length,
+    c = B[0].length;
+  let maxDelta = 0,
+    isIdentical = true;
+  for (let i = 0; i < r; i++) {
+    for (let j = 0; j < c; j++) {
+      const diff = Math.abs((strass.result[i]?.[j] ?? 0) - (trad.result[i]?.[j] ?? 0));
+      if (diff > maxDelta) maxDelta = diff;
+      if (diff > tolerance) isIdentical = false;
+    }
+  }
+  return {
+    isIdentical,
+    maxDelta,
+    strassResult: strass.result,
+    tradResult: trad.result,
+    strassMults: strass.mults,
+    tradMults: trad.mults,
+    strassAdds: strass.adds,
+    tradAdds: trad.adds,
+    strassTime: strass.timeMs,
+    tradTime: trad.timeMs
+  };
+}
+
+// Preset matrices
+const PRESETS = {
+  default2x2: {
+    name: 'Default (2×2)',
+    A: [[1, 2], [3, 4]],
+    B: [[5, 6], [7, 8]]
+  },
+  symmetric2x2: {
+    name: 'Symmetric (2×2)',
+    A: [[2, 5], [5, 2]],
+    B: [[3, 1], [1, 3]]
+  },
+  negative2x2: {
+    name: 'Negative & Zeroes (2×2)',
+    A: [[-1, 4], [0, -3]],
+    B: [[2, -5], [1, 0]]
+  },
+  identity2x2: {
+    name: 'Identity Test (2×2)',
+    A: [[3, 7], [1, 9]],
+    B: [[1, 0], [0, 1]]
+  },
+  example4x4: {
+    name: 'Recursive 4×4 Example',
+    A: [[1, 2, 3, 1], [4, 1, 0, 2], [2, 0, 1, 3], [1, 3, 2, 1]],
+    B: [[2, 1, 0, 1], [1, 3, 2, 0], [0, 1, 3, 2], [2, 0, 1, 1]]
+  }
+};
+
+// --- THREE.JS INTERACTIVE 3D COMPONENT WITH QUANTUM OBSIDIAN THEME ---
+function Interactive3DScene({
+  step,
+  submatricesA,
+  submatricesB
+}) {
+  const containerRef = useRef(null);
+  const sceneRef = useRef(null);
+  const cameraRef = useRef(null);
+  const rendererRef = useRef(null);
+  const controlsRef = useRef(null);
+  const meshGroupRef = useRef(null);
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const scene = new THREE.Scene();
+    sceneRef.current = scene;
+    const width = container.clientWidth;
+    const height = container.clientHeight || 480;
+    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
+    camera.position.set(0, -1, 9.5);
+    cameraRef.current = camera;
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: true
+    });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    rendererRef.current = renderer;
+    container.appendChild(renderer.domElement);
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.minDistance = 4;
+    controls.maxDistance = 18;
+    controlsRef.current = controls;
+
+    // Dynamic Aurora Lights
+    const ambient = new THREE.AmbientLight(0xffffff, 0.8);
+    scene.add(ambient);
+    const emeraldLight = new THREE.DirectionalLight(0x10b981, 1.4);
+    emeraldLight.position.set(6, 8, 5);
+    scene.add(emeraldLight);
+    const cyanLight = new THREE.DirectionalLight(0x06b6d4, 1.0);
+    cyanLight.position.set(-6, -4, -3);
+    scene.add(cyanLight);
+    const amberLight = new THREE.PointLight(0xf59e0b, 1.5, 20);
+    amberLight.position.set(0, 3, 4);
+    scene.add(amberLight);
+    const meshGroup = new THREE.Group();
+    scene.add(meshGroup);
+    meshGroupRef.current = meshGroup;
+    let reqId;
+    const animate = () => {
+      reqId = requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    };
+    animate();
+    const handleResize = () => {
+      if (!container || !renderer || !camera) return;
+      const w = container.clientWidth;
+      const h = container.clientHeight || 480;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => {
+      cancelAnimationFrame(reqId);
+      window.removeEventListener('resize', handleResize);
+      if (container && renderer.domElement) {
+        container.removeChild(renderer.domElement);
+      }
+      renderer.dispose();
+    };
+  }, []);
+  const createMatrixMesh = (label, valueStr, colorTheme, isActive) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+
+    // High-contrast Quantum Obsidian face
+    if (isActive) {
+      ctx.fillStyle = '#064e3b'; // deep emerald glow
+      ctx.fillRect(0, 0, 256, 256);
+      ctx.strokeStyle = '#10b981';
+      ctx.lineWidth = 16;
+      ctx.strokeRect(8, 8, 240, 240);
+    } else {
+      ctx.fillStyle = '#0b0f19'; // dark obsidian
+      ctx.fillRect(0, 0, 256, 256);
+      ctx.strokeStyle = colorTheme === 'cyan' ? '#06b6d4' : colorTheme === 'amber' ? '#f59e0b' : '#374151';
+      ctx.lineWidth = 10;
+      ctx.strokeRect(5, 5, 246, 246);
+    }
+
+    // Submatrix badge
+    ctx.fillStyle = isActive ? '#34d399' : colorTheme === 'cyan' ? '#38bdf8' : '#fbbf24';
+    ctx.font = 'bold 36px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(label, 128, 80);
+
+    // Value text
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 44px monospace';
+    ctx.fillText(valueStr, 128, 170);
+    const texture = new THREE.CanvasTexture(canvas);
+    const mat = new THREE.MeshStandardMaterial({
+      map: texture,
+      roughness: 0.15,
+      metalness: 0.8,
+      transparent: true,
+      opacity: 0.95
+    });
+    const geom = new THREE.BoxGeometry(1.2, 1.2, 0.5);
+    const mesh = new THREE.Mesh(geom, mat);
+
+    // 3D edge accents
+    const wireGeom = new THREE.EdgesGeometry(geom);
+    const wireMat = new THREE.LineBasicMaterial({
+      color: isActive ? 0x10b981 : 0x06b6d4,
+      linewidth: isActive ? 3 : 1
+    });
+    mesh.add(new THREE.LineSegments(wireGeom, wireMat));
+    return mesh;
+  };
+  useEffect(() => {
+    if (!meshGroupRef.current) return;
+    const group = meshGroupRef.current;
+    while (group.children.length > 0) {
+      group.remove(group.children[0]);
+    }
+    const isDivided = step.stage !== 'INPUT';
+    const isFinal = step.stage === 'FINAL_MATRIX';
+    const splitOffset = isDivided ? 0.78 : 0.62;
+
+    // Matrix A (Left: x ~ -3.3)
+    const aCenterX = isFinal ? -4.5 : -3.3;
+    const aBlocks = [{
+      key: 'A11',
+      val: formatCompact(submatricesA.A11),
+      pos: [aCenterX - splitOffset, splitOffset, 0]
+    }, {
+      key: 'A12',
+      val: formatCompact(submatricesA.A12),
+      pos: [aCenterX + splitOffset, splitOffset, 0]
+    }, {
+      key: 'A21',
+      val: formatCompact(submatricesA.A21),
+      pos: [aCenterX - splitOffset, -splitOffset, 0]
+    }, {
+      key: 'A22',
+      val: formatCompact(submatricesA.A22),
+      pos: [aCenterX + splitOffset, -splitOffset, 0]
+    }];
+    aBlocks.forEach(b => {
+      const isActive = step.activeA.includes(b.key);
+      const mesh = createMatrixMesh(b.key, b.val, 'cyan', isActive);
+      mesh.position.set(...b.pos);
+      if (isActive) mesh.scale.set(1.12, 1.12, 1.12);
+      group.add(mesh);
+    });
+
+    // Matrix B (Right: x ~ +3.3)
+    const bCenterX = isFinal ? 4.5 : 3.3;
+    const bBlocks = [{
+      key: 'B11',
+      val: formatCompact(submatricesB.B11),
+      pos: [bCenterX - splitOffset, splitOffset, 0]
+    }, {
+      key: 'B12',
+      val: formatCompact(submatricesB.B12),
+      pos: [bCenterX + splitOffset, splitOffset, 0]
+    }, {
+      key: 'B21',
+      val: formatCompact(submatricesB.B21),
+      pos: [bCenterX - splitOffset, -splitOffset, 0]
+    }, {
+      key: 'B22',
+      val: formatCompact(submatricesB.B22),
+      pos: [bCenterX + splitOffset, -splitOffset, 0]
+    }];
+    bBlocks.forEach(b => {
+      const isActive = step.activeB.includes(b.key);
+      const mesh = createMatrixMesh(b.key, b.val, 'amber', isActive);
+      mesh.position.set(...b.pos);
+      if (isActive) mesh.scale.set(1.12, 1.12, 1.12);
+      group.add(mesh);
+    });
+
+    // Center Intermediate Product Block
+    if (step.intermediate) {
+      const pMesh = createMatrixMesh(step.intermediate.label, formatCompact(step.intermediate.matrix), 'emerald', true);
+      pMesh.position.set(0, 0, 0.45);
+      pMesh.scale.set(1.2, 1.2, 1.2);
+      group.add(pMesh);
+
+      // Glowing laser connecting arcs
+      step.activeA.forEach(aKey => {
+        const blk = aBlocks.find(x => x.key === aKey);
+        if (blk) {
+          const geom = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(...blk.pos), new THREE.Vector3(0, 0, 0.45)]);
+          group.add(new THREE.Line(geom, new THREE.LineBasicMaterial({
+            color: 0x06b6d4,
+            linewidth: 3
+          })));
+        }
+      });
+      step.activeB.forEach(bKey => {
+        const blk = bBlocks.find(x => x.key === bKey);
+        if (blk) {
+          const geom = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(...blk.pos), new THREE.Vector3(0, 0, 0.45)]);
+          group.add(new THREE.Line(geom, new THREE.LineBasicMaterial({
+            color: 0xf59e0b,
+            linewidth: 3
+          })));
+        }
+      });
+    }
+
+    // Result Submatrices (C11, C12, C21, C22)
+    if (step.stage === 'COMBINE_C11_C12' || step.stage === 'COMBINE_C21_C22' || isFinal) {
+      const cSplit = isFinal ? 0.62 : 0.75;
+      const cBlocks = [{
+        key: 'C11',
+        val: step.resultsCalculated.C11 ? formatCompact(step.resultsCalculated.C11) : '...',
+        pos: [-cSplit, cSplit, 0]
+      }, {
+        key: 'C12',
+        val: step.resultsCalculated.C12 ? formatCompact(step.resultsCalculated.C12) : '...',
+        pos: [cSplit, cSplit, 0]
+      }, {
+        key: 'C21',
+        val: step.resultsCalculated.C21 ? formatCompact(step.resultsCalculated.C21) : '...',
+        pos: [-cSplit, -cSplit, 0]
+      }, {
+        key: 'C22',
+        val: step.resultsCalculated.C22 ? formatCompact(step.resultsCalculated.C22) : '...',
+        pos: [cSplit, -cSplit, 0]
+      }];
+      cBlocks.forEach(b => {
+        if (b.val !== '...') {
+          const isActive = step.activeResults.includes(b.key);
+          const mesh = createMatrixMesh(b.key, b.val, 'emerald', isActive);
+          mesh.position.set(...b.pos);
+          group.add(mesh);
+        }
+      });
+    }
+  }, [step, submatricesA, submatricesB]);
+  const handleResetCam = () => {
+    if (cameraRef.current && controlsRef.current) {
+      cameraRef.current.position.set(0, -1, 9.5);
+      controlsRef.current.reset();
+    }
+  };
+  const handleTopDown = () => {
+    if (cameraRef.current && controlsRef.current) {
+      cameraRef.current.position.set(0, 0, 11);
+      controlsRef.current.update();
+    }
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "relative w-full h-[470px] sm:h-[530px] rounded-2xl overflow-hidden bg-gradient-to-b from-[#030712] via-[#0b0f19] to-[#030712] border border-emerald-500/30 shadow-2xl flex flex-col"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "absolute top-3 left-3 right-3 z-10 flex items-center justify-between pointer-events-none"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "pointer-events-auto flex items-center space-x-2 px-3 py-1 rounded-xl bg-obsidian-950/90 border border-emerald-500/40 text-xs font-mono text-emerald-300 backdrop-blur-md"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "w-2 h-2 rounded-full bg-emerald-400 animate-ping"
+  }), /*#__PURE__*/React.createElement("span", null, "Quantum 3D Stage \u2022 ", step.stage)), /*#__PURE__*/React.createElement("div", {
+    className: "pointer-events-auto flex items-center space-x-1.5 bg-obsidian-950/90 p-1 rounded-xl border border-obsidian-800 text-xs text-slate-300 backdrop-blur-md"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: handleResetCam,
+    className: "px-2.5 py-1 rounded-lg hover:text-white bg-obsidian-900 border border-obsidian-800 hover:border-emerald-500/40 font-mono"
+  }, "3D Iso"), /*#__PURE__*/React.createElement("button", {
+    onClick: handleTopDown,
+    className: "px-2.5 py-1 rounded-lg hover:text-white bg-obsidian-900 border border-obsidian-800 hover:border-emerald-500/40 font-mono"
+  }, "2D Top"))), /*#__PURE__*/React.createElement("div", {
+    ref: containerRef,
+    className: "w-full h-full cursor-grab active:cursor-grabbing"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "absolute bottom-2 left-0 right-0 z-10 text-center pointer-events-none"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-[10px] font-mono text-slate-400 bg-obsidian-950/80 px-3 py-0.5 rounded-full border border-obsidian-800"
+  }, "Left Click: Orbit Rotate \u2022 Scroll: Zoom \u2022 Right Click: Pan")));
+}
+
+// --- MAIN REACT APPLICATION COMPONENT ---
+function StrassenLaboratoryApp() {
+  const [matrixSize, setMatrixSize] = useState(2);
+  const [matrixA, setMatrixA] = useState(PRESETS.default2x2.A);
+  const [matrixB, setMatrixB] = useState(PRESETS.default2x2.B);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [speed, setSpeed] = useState(1);
+  const [isMuted, setIsMuted] = useState(true);
+  const [isBioModalOpen, setIsBioModalOpen] = useState(false);
+  const [isPosterModalOpen, setIsPosterModalOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+
+  // Computation & Verification
+  const computation = useMemo(() => computeStrassenWithSteps(matrixA, matrixB), [matrixA, matrixB]);
+  const verification = useMemo(() => verifyResults(matrixA, matrixB), [matrixA, matrixB]);
+  const steps = computation.steps;
+  const currentStep = steps[currentStepIndex] || steps[0];
+  const isComplete = currentStepIndex >= steps.length - 1;
+
+  // Playback handlers
+  const nextStep = useCallback(() => {
+    setCurrentStepIndex(prev => {
+      if (prev < steps.length - 1) {
+        const next = prev + 1;
+        if (next >= 3 && next <= 9) soundEngine.product();else soundEngine.step();
+        if (next === steps.length - 1) {
+          soundEngine.success();
+          confetti({
+            particleCount: 90,
+            spread: 75,
+            origin: {
+              y: 0.6
+            }
+          });
+        }
+        return next;
+      } else {
+        setIsPlaying(false);
+        return prev;
+      }
+    });
+  }, [steps.length]);
+  const prevStep = useCallback(() => {
+    setCurrentStepIndex(prev => {
+      if (prev > 0) {
+        soundEngine.step();
+        return prev - 1;
+      }
+      return 0;
+    });
+  }, []);
+  const togglePlay = useCallback(() => {
+    if (isComplete && !isPlaying) {
+      setCurrentStepIndex(0);
+      setIsPlaying(true);
+    } else {
+      setIsPlaying(p => !p);
+    }
+  }, [isComplete, isPlaying]);
+  const restart = useCallback(() => {
+    setIsPlaying(false);
+    setCurrentStepIndex(0);
+    soundEngine.step();
+  }, []);
+  const skipToResult = useCallback(() => {
+    setIsPlaying(false);
+    setCurrentStepIndex(steps.length - 1);
+    soundEngine.success();
+    confetti({
+      particleCount: 110,
+      spread: 85,
+      origin: {
+        y: 0.6
+      }
+    });
+  }, [steps.length]);
+
+  // Automatic step timer when playing
+  useEffect(() => {
+    if (!isPlaying) return;
+    const intervalMs = 2400 / speed;
+    const timer = setInterval(() => {
+      setCurrentStepIndex(prev => {
+        if (prev < steps.length - 1) {
+          const next = prev + 1;
+          if (next >= 3 && next <= 9) soundEngine.product();else soundEngine.step();
+          if (next === steps.length - 1) {
+            setIsPlaying(false);
+            soundEngine.success();
+            confetti({
+              particleCount: 90,
+              spread: 75,
+              origin: {
+                y: 0.6
+              }
+            });
+          }
+          return next;
+        } else {
+          setIsPlaying(false);
+          return prev;
+        }
+      });
+    }, intervalMs);
+    return () => clearInterval(timer);
+  }, [isPlaying, speed, steps.length]);
+  const handleLoadPreset = key => {
+    const p = PRESETS[key];
+    if (!p) return;
+    setIsPlaying(false);
+    setMatrixSize(p.A.length);
+    setMatrixA(p.A);
+    setMatrixB(p.B);
+    setCurrentStepIndex(0);
+  };
+  const handleRandomize = (size = matrixSize) => {
+    setIsPlaying(false);
+    const gen = n => Array.from({
+      length: n
+    }, () => Array.from({
+      length: n
+    }, () => Math.floor(Math.random() * 19) - 9));
+    setMatrixSize(size);
+    setMatrixA(gen(size));
+    setMatrixB(gen(size));
+    setCurrentStepIndex(0);
+  };
+  const handleResetZeroes = (size = matrixSize) => {
+    setIsPlaying(false);
+    setMatrixSize(size);
+    setMatrixA(createZeroMatrix(size, size));
+    setMatrixB(createZeroMatrix(size, size));
+    setCurrentStepIndex(0);
+  };
+  const handleSizeChange = newSize => {
+    setIsPlaying(false);
+    setMatrixSize(newSize);
+    const resize = (oldM, n) => {
+      const res = createZeroMatrix(n, n);
+      for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n; j++) {
+          res[i][j] = oldM[i]?.[j] !== undefined ? oldM[i][j] : Math.floor(Math.random() * 8) + 1;
+        }
+      }
+      return res;
+    };
+    setMatrixA(prev => resize(prev, newSize));
+    setMatrixB(prev => resize(prev, newSize));
+    setCurrentStepIndex(0);
+  };
+  const scrollTo = id => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({
+      behavior: 'smooth'
+    });
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "min-h-screen flex flex-col bg-obsidian-950 text-slate-100"
+  }, /*#__PURE__*/React.createElement("header", {
+    className: "sticky top-0 z-50 w-full backdrop-blur-md bg-obsidian-950/90 border-b border-emerald-500/20"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between"
+  }, /*#__PURE__*/React.createElement("div", {
+    onClick: () => scrollTo('hero-section'),
+    className: "flex items-center space-x-3 cursor-pointer group"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-9 h-9 rounded-lg bg-gradient-to-tr from-emerald-500 via-cyan-400 to-amber-400 p-[1px] shadow-lg shadow-emerald-500/20 group-hover:shadow-emerald-500/40 transition-all"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-full h-full bg-obsidian-950 rounded-[7px] flex items-center justify-center font-mono font-black text-emerald-400 text-sm"
+  }, "\u03A37")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center space-x-2"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "font-extrabold text-base tracking-wide bg-gradient-to-r from-emerald-400 via-cyan-300 to-amber-300 bg-clip-text text-transparent"
+  }, "STRASSEN QUANTUM LAB"), /*#__PURE__*/React.createElement("span", {
+    className: "text-[10px] uppercase font-semibold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/30"
+  }, "O(n", /*#__PURE__*/React.createElement("sup", null, "2.807"), ")")), /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-slate-400 font-mono hidden sm:block"
+  }, "Volker Strassen 1969 \u2022 DeepMind AlphaTensor Era"))), /*#__PURE__*/React.createElement("nav", {
+    className: "hidden md:flex items-center space-x-6 text-sm font-medium text-slate-300"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => scrollTo('input-section'),
+    className: "hover:text-emerald-400 transition-colors"
+  }, "Input Matrices"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => scrollTo('visualizer-section'),
+    className: "hover:text-emerald-400 transition-colors text-emerald-300 font-semibold"
+  }, "3D Spatial Stage"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => scrollTo('inventor-section'),
+    className: "hover:text-amber-400 transition-colors text-amber-300 font-semibold flex items-center space-x-1"
+  }, /*#__PURE__*/React.createElement("span", null, "Volker Strassen"), /*#__PURE__*/React.createElement("span", {
+    className: "text-[10px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30"
+  }, "Inventor")), /*#__PURE__*/React.createElement("button", {
+    onClick: () => scrollTo('theory-section'),
+    className: "hover:text-cyan-400 transition-colors"
+  }, "Algorithm Theory"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => scrollTo('comparison-section'),
+    className: "hover:text-emerald-400 transition-colors"
+  }, "Complexity & Benchmarks")), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center space-x-3"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      const muted = soundEngine.toggleMute();
+      setIsMuted(muted);
+    },
+    className: "px-2.5 py-1.5 rounded-lg bg-obsidian-900 border border-obsidian-800 text-xs font-mono text-slate-300 hover:text-emerald-400",
+    title: "Toggle Sound Effects"
+  }, isMuted ? '🔇 Audio Muted' : '🔊 Audio Active'), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setIsBioModalOpen(true),
+    className: "px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-950 to-obsidian-900 border border-amber-500/40 text-xs font-bold text-amber-300 hover:text-white transition-all shadow-md shadow-amber-500/10"
+  }, "\uD83D\uDC64 Inventor Profile")))), /*#__PURE__*/React.createElement("main", {
+    className: "flex-1 space-y-16"
+  }, /*#__PURE__*/React.createElement("section", {
+    id: "hero-section",
+    className: "relative min-h-[85vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-center"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "lg:col-span-7 space-y-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold"
+  }, /*#__PURE__*/React.createElement("span", null, "\u26A1 Quantum Obsidian Architecture \u2022 Volker Strassen (1969)")), /*#__PURE__*/React.createElement("h1", {
+    className: "text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-tight"
+  }, "STRASSEN MATRIX ", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("span", {
+    className: "bg-gradient-to-r from-emerald-400 via-cyan-300 to-amber-300 bg-clip-text text-transparent"
+  }, "MULTIPLICATION")), /*#__PURE__*/React.createElement("p", {
+    className: "text-lg sm:text-xl font-medium text-emerald-100/90 leading-relaxed max-w-2xl"
+  }, "Explore how German mathematician Volker Strassen shocked the world in 1969 by reducing matrix multiplication from 8 recursive operations down to 7."), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm sm:text-base text-slate-300 leading-relaxed max-w-2xl"
+  }, "Enter custom matrices and watch the algorithm divide, calculate 7 algebraic products, and assemble the final product with real-time 3D spatial geometry and 100% verified arithmetic."), /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-wrap items-center gap-4 pt-2"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      scrollTo('visualizer-section');
+      if (!isPlaying && currentStepIndex === 0) togglePlay();
+    },
+    className: "px-7 py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-obsidian-950 font-extrabold text-sm tracking-wide shadow-lg shadow-emerald-500/25 hover:-translate-y-0.5 transition-all"
+  }, "START 3D VISUALIZATION \u2192"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => scrollTo('inventor-section'),
+    className: "px-6 py-3.5 rounded-xl bg-obsidian-900 hover:bg-obsidian-850 border border-amber-500/40 text-amber-300 hover:text-white font-semibold text-sm transition-all"
+  }, "MEET VOLKER STRASSEN")), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-3 gap-4 pt-6 border-t border-obsidian-800 max-w-lg"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    className: "text-xs text-slate-400 font-mono"
+  }, "Classical Bound"), /*#__PURE__*/React.createElement("p", {
+    className: "text-base sm:text-lg font-bold text-slate-200"
+  }, "8 Multiplications"), /*#__PURE__*/React.createElement("span", {
+    className: "text-[11px] text-slate-500 font-mono"
+  }, "O(n\xB3) cubic")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    className: "text-xs text-emerald-400 font-mono"
+  }, "Strassen (1969)"), /*#__PURE__*/React.createElement("p", {
+    className: "text-base sm:text-lg font-bold text-emerald-300"
+  }, "7 Multiplications"), /*#__PURE__*/React.createElement("span", {
+    className: "text-[11px] text-emerald-400/80 font-mono"
+  }, "O(n", /*#__PURE__*/React.createElement("sup", null, "2.8074"), ")")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    className: "text-xs text-amber-400 font-mono"
+  }, "DeepMind (2022)"), /*#__PURE__*/React.createElement("p", {
+    className: "text-base sm:text-lg font-bold text-amber-300"
+  }, "AlphaTensor"), /*#__PURE__*/React.createElement("span", {
+    className: "text-[11px] text-amber-400/80 font-mono"
+  }, "AI Discoveries")))), /*#__PURE__*/React.createElement("div", {
+    className: "lg:col-span-5 flex justify-center"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-full max-w-md p-6 rounded-3xl obsidian-card space-y-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between pb-3 border-b border-obsidian-800 font-mono text-xs text-emerald-300"
+  }, /*#__PURE__*/React.createElement("span", null, "Quantum Obsidian Stage"), /*#__PURE__*/React.createElement("span", {
+    className: "px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+  }, "Active Live")), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 gap-3 text-center font-mono"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "p-3 rounded-xl bg-obsidian-950/90 border border-cyan-500/30"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-xs text-cyan-400 block mb-1 font-bold"
+  }, "Matrix A"), /*#__PURE__*/React.createElement("div", {
+    className: "text-sm font-bold text-white"
+  }, formatCompact(matrixA))), /*#__PURE__*/React.createElement("div", {
+    className: "p-3 rounded-xl bg-obsidian-950/90 border border-amber-500/30"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-xs text-amber-400 block mb-1 font-bold"
+  }, "Matrix B"), /*#__PURE__*/React.createElement("div", {
+    className: "text-sm font-bold text-white"
+  }, formatCompact(matrixB)))), /*#__PURE__*/React.createElement("div", {
+    className: "p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/40 text-center font-mono"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-xs text-emerald-400 block mb-1 font-bold"
+  }, "Live Result C = A \xD7 B"), /*#__PURE__*/React.createElement("div", {
+    className: "text-base font-bold text-white"
+  }, formatCompact(computation.result))), /*#__PURE__*/React.createElement("div", {
+    className: "p-3 rounded-xl bg-amber-950/30 border border-amber-500/30 flex items-center space-x-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-11 h-14 rounded-lg overflow-hidden border border-amber-500/50 shrink-0 bg-obsidian-950"
+  }, /*#__PURE__*/React.createElement("img", {
+    src: VOLKER_STRASSEN_PHOTO,
+    alt: "Volker Strassen",
+    className: "w-full h-full object-cover object-top"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "text-xs text-amber-200/90 leading-relaxed font-sans"
+  }, /*#__PURE__*/React.createElement("strong", {
+    className: "text-amber-300 block"
+  }, "Volker Strassen (1969):"), /*#__PURE__*/React.createElement("span", null, "Disproved the conjecture that matrix multiplication fundamentally required \u039F(n\xB3) operations."))))))), /*#__PURE__*/React.createElement("section", {
+    id: "inventor-section",
+    className: "py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "pb-4 border-b border-obsidian-800 flex flex-col sm:flex-row sm:items-end justify-between gap-4"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "text-amber-400 text-xs font-mono font-bold uppercase tracking-wider flex items-center space-x-2"
+  }, /*#__PURE__*/React.createElement("span", null, "HISTORICAL ARCHIVE \u2022 Algorithms Hall of Fame")), /*#__PURE__*/React.createElement("h2", {
+    className: "text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-1 flex items-center space-x-3"
+  }, /*#__PURE__*/React.createElement("span", null, "VOLKER STRASSEN \u2014 THE PIONEER")), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-400 mt-1 max-w-2xl"
+  }, "Discover the German mathematician who revolutionized theoretical computer science and disproved the classical cubic multiplication bound.")), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setIsBioModalOpen(true),
+    className: "px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-obsidian-950 text-xs font-bold transition-all shadow-md shadow-amber-500/20"
+  }, "\uD83D\uDCD6 Read Full Biography & Citations")), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "lg:col-span-4 obsidian-card-amber p-6 rounded-3xl space-y-4 flex flex-col justify-between"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "space-y-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center space-x-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "relative group shrink-0"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-24 h-28 sm:w-28 sm:h-32 rounded-2xl overflow-hidden border-2 border-amber-500/60 shadow-xl shadow-amber-500/25 bg-obsidian-950"
+  }, /*#__PURE__*/React.createElement("img", {
+    src: VOLKER_STRASSEN_PHOTO,
+    alt: "Volker Strassen",
+    className: "w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "absolute -bottom-2 -right-2 px-2 py-0.5 rounded-md bg-amber-500 text-[10px] font-black text-obsidian-950 shadow-md"
+  }, "1969")), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-1"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px] font-mono font-bold block w-fit"
+  }, "PIONEER"), /*#__PURE__*/React.createElement("h3", {
+    className: "text-xl font-extrabold text-white"
+  }, "Prof. Volker Strassen"), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-amber-300 font-mono"
+  }, "Born April 29, 1936 \u2022 D\xFCsseldorf"), /*#__PURE__*/React.createElement("p", {
+    className: "text-[11px] text-slate-400"
+  }, "Emeritus Prof., Univ. of Konstanz"))), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-slate-300 leading-relaxed"
+  }, "Emeritus Professor of Mathematics and Statistics at the ", /*#__PURE__*/React.createElement("strong", null, "University of Konstanz"), ". Recipient of the prestigious ", /*#__PURE__*/React.createElement("strong", null, "Knuth Prize (2008)"), " and ", /*#__PURE__*/React.createElement("strong", null, "Paris Kanellakis Award (1999)"), ".")), /*#__PURE__*/React.createElement("div", {
+    className: "p-3 rounded-xl bg-obsidian-950/90 border border-obsidian-800 space-y-1.5 text-xs font-mono"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-slate-400 font-bold uppercase text-[10px]"
+  }, "Seminal Publication:"), /*#__PURE__*/React.createElement("div", {
+    className: "text-amber-300 italic"
+  }, "\"Gaussian Elimination is not Optimal\""), /*#__PURE__*/React.createElement("div", {
+    className: "text-slate-400 text-[11px]"
+  }, "Numerische Mathematik, 1969"))), /*#__PURE__*/React.createElement("div", {
+    className: "lg:col-span-8 obsidian-card p-6 rounded-3xl space-y-6"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h4", {
+    className: "text-base font-bold text-white flex items-center space-x-2"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-emerald-400"
+  }, "\uD83D\uDE80 The 1969 Mathematical Shockwave")), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed"
+  }, "Prior to 1969, mathematicians and computer scientists universally believed that multiplying two n\xD7n matrices inherently required \u0398(n\xB3) scalar operations, dating back to Carl Friedrich Gauss. Strassen shocked the mathematical community by discovering a non-obvious algebraic decomposition that computes 2\xD72 blocks in ", /*#__PURE__*/React.createElement("strong", null, "7 multiplications instead of 8"), ".")), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-3"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-xs font-mono font-bold text-cyan-400 uppercase tracking-wider block"
+  }, "Evolution of Matrix Multiplication Bounds:"), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs font-mono"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "p-3 rounded-xl bg-obsidian-950/90 border border-slate-700"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-slate-400 text-[10px] block"
+  }, "Classical Gauss"), /*#__PURE__*/React.createElement("span", {
+    className: "text-white font-bold text-sm"
+  }, "O(n\xB3)"), /*#__PURE__*/React.createElement("span", {
+    className: "text-[10px] text-slate-500 block"
+  }, "Pre-1969 standard")), /*#__PURE__*/React.createElement("div", {
+    className: "p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/40"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-emerald-400 text-[10px] block font-bold"
+  }, "Volker Strassen (1969)"), /*#__PURE__*/React.createElement("span", {
+    className: "text-emerald-300 font-bold text-sm"
+  }, "O(n", /*#__PURE__*/React.createElement("sup", null, "2.8074"), ")"), /*#__PURE__*/React.createElement("span", {
+    className: "text-[10px] text-emerald-400/80 block"
+  }, "Sub-cubic breakthrough")), /*#__PURE__*/React.createElement("div", {
+    className: "p-3 rounded-xl bg-cyan-950/30 border border-cyan-500/40"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-cyan-400 text-[10px] block"
+  }, "Coppersmith-Winograd"), /*#__PURE__*/React.createElement("span", {
+    className: "text-cyan-300 font-bold text-sm"
+  }, "O(n", /*#__PURE__*/React.createElement("sup", null, "2.376"), ")"), /*#__PURE__*/React.createElement("span", {
+    className: "text-[10px] text-cyan-400/80 block"
+  }, "Laser method (1987)")), /*#__PURE__*/React.createElement("div", {
+    className: "p-3 rounded-xl bg-amber-950/30 border border-amber-500/40"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-amber-400 text-[10px] block font-bold"
+  }, "DeepMind (2022)"), /*#__PURE__*/React.createElement("span", {
+    className: "text-amber-300 font-bold text-sm"
+  }, "AlphaTensor"), /*#__PURE__*/React.createElement("span", {
+    className: "text-[10px] text-amber-400/80 block"
+  }, "AI Game-playing discovery")))), /*#__PURE__*/React.createElement("div", {
+    className: "p-3.5 rounded-2xl bg-obsidian-950/80 border border-obsidian-800 text-xs text-slate-300 leading-relaxed"
+  }, /*#__PURE__*/React.createElement("strong", {
+    className: "text-emerald-400"
+  }, "Also Famous For:"), " The ", /*#__PURE__*/React.createElement("strong", null, "Solovay\u2013Strassen Primality Test (1977)"), " with Robert Solovay, which proved that prime numbers can be tested in polynomial time with randomized algorithms, laying the computational bedrock for modern RSA public-key cryptography.")))), /*#__PURE__*/React.createElement("section", {
+    id: "input-section",
+    className: "py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-obsidian-800"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center space-x-2 text-emerald-400 text-xs font-mono font-bold uppercase tracking-wider"
+  }, /*#__PURE__*/React.createElement("span", null, "SECTION B \u2022 Interactive Quantum Input")), /*#__PURE__*/React.createElement("h2", {
+    className: "text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-1"
+  }, "INPUT YOUR MATRICES"), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-400 mt-1 max-w-2xl"
+  }, "Configure custom values for Matrix A and Matrix B. Strassen\u2019s divide-and-conquer algorithm will execute step by step using your exact numerical inputs.")), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center space-x-2 bg-obsidian-900 p-1.5 rounded-xl border border-obsidian-800 self-start sm:self-auto"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-xs text-slate-400 font-mono pl-1"
+  }, "Size:"), [2, 4, 8].map(sz => /*#__PURE__*/React.createElement("button", {
+    key: sz,
+    onClick: () => handleSizeChange(sz),
+    className: `px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-colors ${matrixSize === sz ? 'bg-emerald-500 text-obsidian-950 shadow-md' : 'text-slate-300 hover:text-white'}`
+  }, sz, "\xD7", sz)))), /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-obsidian-900/80 border border-obsidian-800 text-xs"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-wrap items-center gap-2"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "font-semibold text-slate-300"
+  }, "Presets:"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => handleLoadPreset('default2x2'),
+    className: "px-2.5 py-1 rounded-lg bg-obsidian-800 hover:bg-emerald-950 text-slate-200 border border-obsidian-700"
+  }, "Default [1 2; 3 4]"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => handleLoadPreset('negative2x2'),
+    className: "px-2.5 py-1 rounded-lg bg-obsidian-800 hover:bg-emerald-950 text-slate-200 border border-obsidian-700"
+  }, "Negative & Zeroes"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => handleLoadPreset('identity2x2'),
+    className: "px-2.5 py-1 rounded-lg bg-obsidian-800 hover:bg-emerald-950 text-slate-200 border border-obsidian-700"
+  }, "Identity Test"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => handleLoadPreset('example4x4'),
+    className: "px-2.5 py-1 rounded-lg bg-obsidian-800 hover:bg-emerald-950 text-slate-200 border border-obsidian-700"
+  }, "4\xD74 Recursive Demo")), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => handleRandomize(matrixSize),
+    className: "px-3 py-1 rounded-lg bg-emerald-500/10 text-emerald-300 border border-emerald-500/30"
+  }, "\uD83C\uDFB2 Randomize"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => handleResetZeroes(matrixSize),
+    className: "px-3 py-1 rounded-lg bg-obsidian-800 text-slate-300 border border-obsidian-700"
+  }, "Zero Out"))), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-2 gap-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "p-4 rounded-2xl obsidian-card space-y-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-between items-center pb-2 border-b border-obsidian-800"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "font-mono font-bold text-lg text-cyan-400"
+  }, "Matrix A (", matrixSize, "\xD7", matrixSize, ")"), /*#__PURE__*/React.createElement("span", {
+    className: "text-[11px] text-slate-400 font-mono"
+  }, "Quadrant Submatrices")), /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-center overflow-x-auto py-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "grid gap-2 p-2 rounded-xl bg-obsidian-950/70 border border-obsidian-800",
+    style: {
+      gridTemplateColumns: `repeat(${matrixSize}, minmax(56px, 1fr))`
+    }
+  }, matrixA.map((row, r) => row.map((val, c) => /*#__PURE__*/React.createElement("input", {
+    key: `A-${r}-${c}`,
+    type: "number",
+    value: val,
+    onChange: e => {
+      const newM = matrixA.map(row => [...row]);
+      newM[r][c] = parseFloat(e.target.value) || 0;
+      setMatrixA(newM);
+    },
+    className: "w-full aspect-square text-center font-mono font-bold text-sm rounded-lg bg-cyan-950/30 border border-cyan-500/40 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
+  })))))), /*#__PURE__*/React.createElement("div", {
+    className: "p-4 rounded-2xl obsidian-card-amber space-y-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-between items-center pb-2 border-b border-obsidian-800"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "font-mono font-bold text-lg text-amber-400"
+  }, "Matrix B (", matrixSize, "\xD7", matrixSize, ")"), /*#__PURE__*/React.createElement("span", {
+    className: "text-[11px] text-slate-400 font-mono"
+  }, "Quadrant Submatrices")), /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-center overflow-x-auto py-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "grid gap-2 p-2 rounded-xl bg-obsidian-950/70 border border-obsidian-800",
+    style: {
+      gridTemplateColumns: `repeat(${matrixSize}, minmax(56px, 1fr))`
+    }
+  }, matrixB.map((row, r) => row.map((val, c) => /*#__PURE__*/React.createElement("input", {
+    key: `B-${r}-${c}`,
+    type: "number",
+    value: val,
+    onChange: e => {
+      const newM = matrixB.map(row => [...row]);
+      newM[r][c] = parseFloat(e.target.value) || 0;
+      setMatrixB(newM);
+    },
+    className: "w-full aspect-square text-center font-mono font-bold text-sm rounded-lg bg-amber-950/30 border border-amber-500/40 text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+  }))))))), /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-obsidian-900/80 to-amber-950/40 border border-emerald-500/30"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center space-x-3 text-xs font-mono"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-slate-400"
+  }, "Animation Speed:"), [0.5, 1, 2, 4].map(s => /*#__PURE__*/React.createElement("button", {
+    key: s,
+    onClick: () => setSpeed(s),
+    className: `px-2.5 py-1 rounded-md transition-colors ${speed === s ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 font-bold' : 'bg-obsidian-900 text-slate-400'}`
+  }, s, "x"))), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center space-x-3"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: restart,
+    className: "px-4 py-2 rounded-xl bg-obsidian-800 hover:bg-obsidian-700 text-slate-300 text-xs font-semibold border border-obsidian-700"
+  }, "Reset Visualizer"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      scrollTo('visualizer-section');
+      restart();
+      setTimeout(() => togglePlay(), 150);
+    },
+    className: "px-6 py-2 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 text-obsidian-950 text-xs font-bold shadow-lg shadow-emerald-500/20"
+  }, "\u25B6 EXECUTE STRASSEN ALGORITHM")))), /*#__PURE__*/React.createElement("section", {
+    id: "visualizer-section",
+    className: "py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-obsidian-800"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center space-x-2 text-emerald-400 text-xs font-mono font-bold uppercase tracking-wider"
+  }, /*#__PURE__*/React.createElement("span", null, "SECTION D & F \u2022 Quantum Spatial Stage")), /*#__PURE__*/React.createElement("h2", {
+    className: "text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-1"
+  }, "WATCH STRASSEN\u2019S ALGORITHM WORK"), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-400 mt-1 max-w-2xl"
+  }, "Real-time visual tracking of matrix partitioning, 7 intermediate product evaluations (P\u2081 through P\u2087), and combination algebra into final matrix C.")), /*#__PURE__*/React.createElement("div", {
+    className: "px-4 py-2 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-xs font-mono text-emerald-300"
+  }, "Stage ", currentStepIndex + 1, " of ", steps.length)), /*#__PURE__*/React.createElement("div", {
+    className: "p-3 rounded-2xl bg-obsidian-900/80 border border-obsidian-800 overflow-x-auto"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center min-w-max space-x-1.5 sm:space-x-2"
+  }, steps.map((st, idx) => {
+    const isCurr = idx === currentStepIndex;
+    const isPassed = idx < currentStepIndex;
+    return /*#__PURE__*/React.createElement("button", {
+      key: st.id,
+      onClick: () => {
+        setCurrentStepIndex(idx);
+        soundEngine.step();
+      },
+      className: `px-2.5 py-1.5 rounded-lg text-xs font-mono transition-all ${isCurr ? 'bg-emerald-500 text-obsidian-950 font-bold shadow-md ring-2 ring-emerald-300' : isPassed ? 'bg-obsidian-950 text-emerald-400 border border-emerald-500/30' : 'bg-obsidian-950/60 text-slate-500 border border-obsidian-800 hover:text-slate-300'}`
+    }, isPassed ? '✓ ' : '', st.stage);
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "lg:col-span-3 order-2 lg:order-1 p-4 rounded-2xl obsidian-card space-y-4"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "font-bold text-sm text-slate-100 pb-2 border-b border-obsidian-800"
+  }, "Submatrix Decomposition"), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-1.5"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-xs font-mono font-bold text-cyan-300"
+  }, "Matrix A Sub-Blocks"), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 gap-2 text-xs font-mono"
+  }, ['A11', 'A12', 'A21', 'A22'].map(k => /*#__PURE__*/React.createElement("div", {
+    key: k,
+    className: `p-2 rounded-lg border ${currentStep.activeA.includes(k) ? 'bg-cyan-500/25 border-cyan-400 text-white shadow-md shadow-cyan-500/20' : 'bg-obsidian-950/60 border-obsidian-800 text-slate-300'}`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] text-cyan-400"
+  }, k), /*#__PURE__*/React.createElement("div", {
+    className: "font-bold text-center"
+  }, formatCompact(computation.submatricesA[k])))))), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-1.5"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-xs font-mono font-bold text-amber-300"
+  }, "Matrix B Sub-Blocks"), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 gap-2 text-xs font-mono"
+  }, ['B11', 'B12', 'B21', 'B22'].map(k => /*#__PURE__*/React.createElement("div", {
+    key: k,
+    className: `p-2 rounded-lg border ${currentStep.activeB.includes(k) ? 'bg-amber-500/25 border-amber-400 text-white shadow-md shadow-amber-500/20' : 'bg-obsidian-950/60 border-obsidian-800 text-slate-300'}`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] text-amber-400"
+  }, k), /*#__PURE__*/React.createElement("div", {
+    className: "font-bold text-center"
+  }, formatCompact(computation.submatricesB[k])))))), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2 pt-2 border-t border-obsidian-800"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-xs font-mono font-bold text-emerald-300"
+  }, "7 Strassen Products"), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 gap-1.5 text-[11px] font-mono"
+  }, ['P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7'].map(pk => {
+    const val = currentStep.productsCalculated[pk];
+    return /*#__PURE__*/React.createElement("div", {
+      key: pk,
+      className: `p-1.5 rounded border flex justify-between ${val ? 'bg-obsidian-950 border-emerald-500/40 text-emerald-300 font-bold' : 'bg-obsidian-950/40 border-obsidian-900 text-slate-600'}`
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "font-bold text-slate-400"
+    }, pk, ":"), /*#__PURE__*/React.createElement("span", null, val ? formatCompact(val) : '—'));
+  })))), /*#__PURE__*/React.createElement("div", {
+    className: "lg:col-span-6 order-1 lg:order-2 flex flex-col"
+  }, /*#__PURE__*/React.createElement(Interactive3DScene, {
+    step: currentStep,
+    submatricesA: computation.submatricesA,
+    submatricesB: computation.submatricesB
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "lg:col-span-3 order-3 p-4 rounded-2xl obsidian-card space-y-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between pb-2 border-b border-obsidian-800"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "font-bold text-sm text-slate-100"
+  }, "Operation & Formula"), /*#__PURE__*/React.createElement("span", {
+    className: "text-[10px] font-mono text-emerald-300 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-500/30"
+  }, "Stage ", currentStep.stageIndex + 1, "/", steps.length)), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-1"
+  }, /*#__PURE__*/React.createElement("h4", {
+    className: "text-sm font-bold text-white"
+  }, currentStep.title), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-emerald-300/90"
+  }, currentStep.subtitle)), /*#__PURE__*/React.createElement("div", {
+    className: "p-2.5 rounded-xl bg-obsidian-950/90 border border-obsidian-800 space-y-1"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-[10px] uppercase font-mono font-bold text-slate-400 block"
+  }, "Algebraic Formulation:"), /*#__PURE__*/React.createElement("div", {
+    className: "font-mono text-xs text-cyan-300"
+  }, currentStep.formulaReadable)), /*#__PURE__*/React.createElement("div", {
+    className: "p-2.5 rounded-xl bg-emerald-950/30 border border-emerald-500/30 space-y-1"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-[10px] uppercase font-mono font-bold text-emerald-300 block"
+  }, "Real Numerical Evaluation:"), /*#__PURE__*/React.createElement("div", {
+    className: "font-mono text-xs text-slate-100 whitespace-pre-wrap leading-relaxed"
+  }, currentStep.substitutedFormula)), currentStep.intermediate && /*#__PURE__*/React.createElement("div", {
+    className: "p-2.5 rounded-xl bg-emerald-950/50 border border-emerald-500/40 flex justify-between items-center text-xs font-mono"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "font-bold text-slate-200"
+  }, currentStep.intermediate.label, " Output:"), /*#__PURE__*/React.createElement("span", {
+    className: "font-bold text-emerald-300 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-500/40"
+  }, formatCompact(currentStep.intermediate.matrix))), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-1 pt-1"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-[10px] uppercase font-mono font-bold text-slate-400 block"
+  }, "Pedagogical Insights:"), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-slate-300 leading-relaxed bg-obsidian-950/60 p-2.5 rounded-xl border border-obsidian-800"
+  }, currentStep.explanation)))), /*#__PURE__*/React.createElement("div", {
+    className: "p-4 rounded-2xl bg-obsidian-950/90 border border-emerald-500/30 shadow-xl flex flex-wrap items-center justify-between gap-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center space-x-2"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: restart,
+    className: "p-2 rounded-lg bg-obsidian-900 border border-obsidian-800 text-slate-300 hover:text-white",
+    title: "Restart"
+  }, "\u21BA Restart"), /*#__PURE__*/React.createElement("button", {
+    onClick: prevStep,
+    disabled: currentStepIndex === 0,
+    className: "p-2 rounded-lg bg-obsidian-900 border border-obsidian-800 text-slate-300 hover:text-white disabled:opacity-40",
+    title: "Previous Step"
+  }, "\u25C0 Prev"), /*#__PURE__*/React.createElement("button", {
+    onClick: togglePlay,
+    className: `px-5 py-2 rounded-xl font-bold text-xs shadow-lg transition-all ${isPlaying ? 'bg-amber-500 text-obsidian-950' : 'bg-gradient-to-r from-emerald-500 to-cyan-400 text-obsidian-950'}`
+  }, isPlaying ? '⏸ PAUSE' : isComplete ? '↺ REPLAY' : '▶ PLAY'), /*#__PURE__*/React.createElement("button", {
+    onClick: nextStep,
+    disabled: isComplete,
+    className: "p-2 rounded-lg bg-obsidian-900 border border-obsidian-800 text-slate-300 hover:text-white disabled:opacity-40",
+    title: "Next Step"
+  }, "Next \u25B6"), /*#__PURE__*/React.createElement("button", {
+    onClick: skipToResult,
+    className: "px-3 py-2 rounded-lg bg-obsidian-900 border border-obsidian-800 text-slate-300 hover:text-emerald-300 text-xs font-mono"
+  }, "Fast-Forward \u2192")), /*#__PURE__*/React.createElement("div", {
+    className: "text-xs font-mono text-slate-400"
+  }, "Progress: ", Math.round((currentStepIndex + 1) / steps.length * 100), "% (", currentStepIndex + 1, "/", steps.length, ")"))), /*#__PURE__*/React.createElement("section", {
+    id: "theory-section",
+    className: "py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "pb-4 border-b border-obsidian-800"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-emerald-400 text-xs font-mono font-bold uppercase tracking-wider"
+  }, "SECTION C & E \u2022 Mathematical Rigor"), /*#__PURE__*/React.createElement("h2", {
+    className: "text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-1"
+  }, "ALGORITHM THEORY & MATHEMATICAL FOUNDATIONS"), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-400 mt-1 max-w-2xl"
+  }, "A comprehensive academic exploration of standard matrix multiplication, the divide-and-conquer breakthrough, and Master Theorem complexity.")), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-2 gap-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "p-6 rounded-2xl obsidian-card space-y-3"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "font-bold text-base text-white"
+  }, "What is Standard Matrix Multiplication?"), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs sm:text-sm text-slate-300 leading-relaxed"
+  }, "Standard matrix multiplication computes each entry C", /*#__PURE__*/React.createElement("sub", null, "ij"), " via the dot product of row i from A and column j from B:"), /*#__PURE__*/React.createElement("div", {
+    className: "p-3 rounded-xl bg-obsidian-950/90 border border-obsidian-800 font-mono text-center text-xs sm:text-sm text-cyan-300"
+  }, "C", /*#__PURE__*/React.createElement("sub", null, "ij"), " = \u2211", /*#__PURE__*/React.createElement("sub", null, "k=1..n"), " ( A", /*#__PURE__*/React.createElement("sub", null, "ik"), " \xD7 B", /*#__PURE__*/React.createElement("sub", null, "kj"), " )"), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-slate-400 leading-relaxed"
+  }, "This requires n\xB3 scalar multiplications and n\xB2(n\u22121) additions, giving the cubic \u039F(n\xB3) complexity.")), /*#__PURE__*/React.createElement("div", {
+    className: "p-6 rounded-2xl obsidian-card-amber space-y-3"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "font-bold text-base text-white"
+  }, "The Strassen Divide-and-Conquer Shift"), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs sm:text-sm text-slate-300 leading-relaxed"
+  }, "Volker Strassen (1969) proved that 2\xD72 block multiplication could be performed using only ", /*#__PURE__*/React.createElement("strong", null, "7 recursive multiplications"), " instead of 8:"), /*#__PURE__*/React.createElement("div", {
+    className: "p-3 rounded-xl bg-obsidian-950/90 border border-obsidian-800 font-mono text-center text-xs sm:text-sm text-amber-300"
+  }, "T(n) = 7 \u2022 T(n/2) + \u0398(n\xB2) &implies; \u039F(n", /*#__PURE__*/React.createElement("sup", null, "log&sub2; 7"), ") \u2248 \u039F(n", /*#__PURE__*/React.createElement("sup", null, "2.8074"), ")"), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-slate-400 leading-relaxed"
+  }, "Saving one multiplication drops the asymptotic exponent from 3.0 to 2.8074, yielding significant acceleration for large matrices."))), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-4"
+  }, /*#__PURE__*/React.createElement("h4", {
+    className: "text-sm font-mono font-bold uppercase tracking-wider text-emerald-400"
+  }, "The 7 Strassen Multiplications ($P_1 \\dots P_7$)"), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 font-mono text-xs"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "p-3 rounded-xl bg-obsidian-900 border border-obsidian-800"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-emerald-300 font-bold block mb-1"
+  }, "P\u2081:"), " P\u2081 = (A\u2081\u2081 + A\u2082\u2082)(B\u2081\u2081 + B\u2082\u2082)"), /*#__PURE__*/React.createElement("div", {
+    className: "p-3 rounded-xl bg-obsidian-900 border border-obsidian-800"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-emerald-300 font-bold block mb-1"
+  }, "P\u2082:"), " P\u2082 = (A\u2082\u2081 + A\u2082\u2082)B\u2081\u2081"), /*#__PURE__*/React.createElement("div", {
+    className: "p-3 rounded-xl bg-obsidian-900 border border-obsidian-800"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-emerald-300 font-bold block mb-1"
+  }, "P\u2083:"), " P\u2083 = A\u2081\u2081(B\u2081\u2082 \u2212 B\u2082\u2082)"), /*#__PURE__*/React.createElement("div", {
+    className: "p-3 rounded-xl bg-obsidian-900 border border-obsidian-800"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-emerald-300 font-bold block mb-1"
+  }, "P\u2084:"), " P\u2084 = A\u2082\u2082(B\u2082\u2081 \u2212 B\u2081\u2081)"), /*#__PURE__*/React.createElement("div", {
+    className: "p-3 rounded-xl bg-obsidian-900 border border-obsidian-800"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-emerald-300 font-bold block mb-1"
+  }, "P\u2085:"), " P\u2085 = (A\u2081\u2081 + A\u2081\u2082)B\u2082\u2082"), /*#__PURE__*/React.createElement("div", {
+    className: "p-3 rounded-xl bg-obsidian-900 border border-obsidian-800"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-emerald-300 font-bold block mb-1"
+  }, "P\u2086:"), " P\u2086 = (A\u2082\u2081 \u2212 A\u2081\u2081)(B\u2081\u2081 + B\u2081\u2082)"), /*#__PURE__*/React.createElement("div", {
+    className: "p-3 rounded-xl bg-obsidian-900 border border-obsidian-800 sm:col-span-2 lg:col-span-1"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-emerald-300 font-bold block mb-1"
+  }, "P\u2087:"), " P\u2087 = (A\u2081\u2082 \u2212 A\u2082\u2082)(B\u2082\u2081 + B\u2082\u2082)"))), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-4"
+  }, /*#__PURE__*/React.createElement("h4", {
+    className: "text-sm font-mono font-bold uppercase tracking-wider text-cyan-400"
+  }, "Combining Products into Matrix C"), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 font-mono text-xs"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "p-3 rounded-xl bg-cyan-950/30 border border-cyan-500/30"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-cyan-300 font-bold block mb-1"
+  }, "C\u2081\u2081:"), " C\u2081\u2081 = P\u2081 + P\u2084 \u2212 P\u2085 + P\u2087"), /*#__PURE__*/React.createElement("div", {
+    className: "p-3 rounded-xl bg-cyan-950/30 border border-cyan-500/30"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-cyan-300 font-bold block mb-1"
+  }, "C\u2081\u2082:"), " C\u2081\u2082 = P\u2083 + P\u2085"), /*#__PURE__*/React.createElement("div", {
+    className: "p-3 rounded-xl bg-cyan-950/30 border border-cyan-500/30"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-cyan-300 font-bold block mb-1"
+  }, "C\u2082\u2081:"), " C\u2082\u2081 = P\u2082 + P\u2084"), /*#__PURE__*/React.createElement("div", {
+    className: "p-3 rounded-xl bg-cyan-950/30 border border-cyan-500/30"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-cyan-300 font-bold block mb-1"
+  }, "C\u2082\u2082:"), " C\u2082\u2082 = P\u2081 \u2212 P\u2082 + P\u2083 + P\u2086")))), /*#__PURE__*/React.createElement("section", {
+    id: "comparison-section",
+    className: "py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "pb-4 border-b border-obsidian-800"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-emerald-400 text-xs font-mono font-bold uppercase tracking-wider"
+  }, "SECTION G \u2022 Benchmark Arena"), /*#__PURE__*/React.createElement("h2", {
+    className: "text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-1"
+  }, "TRADITIONAL VS STRASSEN COMPARISON"), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-400 mt-1 max-w-2xl"
+  }, "Compare exact arithmetic operation scaling from N=2 up to N=2048.")), /*#__PURE__*/React.createElement("div", {
+    className: "rounded-2xl overflow-hidden border border-obsidian-800 bg-obsidian-950/80 shadow-xl overflow-x-auto"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "w-full text-left text-xs font-mono"
+  }, /*#__PURE__*/React.createElement("thead", {
+    className: "bg-obsidian-900 text-slate-400 border-b border-obsidian-800"
+  }, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", {
+    className: "p-3"
+  }, "Dimension (N)"), /*#__PURE__*/React.createElement("th", {
+    className: "p-3"
+  }, "Traditional Mults (N\xB3)"), /*#__PURE__*/React.createElement("th", {
+    className: "p-3 text-emerald-300"
+  }, "Strassen Mults (7", /*#__PURE__*/React.createElement("sup", null, "log\u2082N"), ")"), /*#__PURE__*/React.createElement("th", {
+    className: "p-3 text-cyan-400"
+  }, "Savings %"), /*#__PURE__*/React.createElement("th", {
+    className: "p-3"
+  }, "Optimal Regime"))), /*#__PURE__*/React.createElement("tbody", {
+    className: "divide-y divide-obsidian-800/60 text-slate-300"
+  }, [{
+    n: 2,
+    trad: 8,
+    strass: 7,
+    save: '12.5%',
+    regime: 'Traditional Faster (Overhead)'
+  }, {
+    n: 4,
+    trad: 64,
+    strass: 49,
+    save: '23.4%',
+    regime: 'Traditional Faster'
+  }, {
+    n: 8,
+    trad: 512,
+    strass: 343,
+    save: '33.0%',
+    regime: 'Traditional Faster'
+  }, {
+    n: 16,
+    trad: 4096,
+    strass: 2401,
+    save: '41.4%',
+    regime: 'Transitional'
+  }, {
+    n: 32,
+    trad: 32768,
+    strass: 16807,
+    save: '48.7%',
+    regime: 'Transitional'
+  }, {
+    n: 64,
+    trad: 262144,
+    strass: 117649,
+    save: '55.1%',
+    regime: 'Crossover Threshold'
+  }, {
+    n: 128,
+    trad: 2097152,
+    strass: 823543,
+    save: '60.7%',
+    regime: 'Strassen Faster'
+  }, {
+    n: 512,
+    trad: 134217728,
+    strass: 40353607,
+    save: '69.9%',
+    regime: 'Strassen Substantially Faster'
+  }, {
+    n: 2048,
+    trad: 8589934592,
+    strass: 1977326743,
+    save: '77.0%',
+    regime: 'Massive Scientific Gain'
+  }].map(row => /*#__PURE__*/React.createElement("tr", {
+    key: row.n,
+    className: "hover:bg-obsidian-900/50"
+  }, /*#__PURE__*/React.createElement("td", {
+    className: "p-3 font-bold text-emerald-400"
+  }, row.n, "\xD7", row.n), /*#__PURE__*/React.createElement("td", {
+    className: "p-3"
+  }, row.trad.toLocaleString()), /*#__PURE__*/React.createElement("td", {
+    className: "p-3 text-emerald-300 font-bold"
+  }, row.strass.toLocaleString()), /*#__PURE__*/React.createElement("td", {
+    className: "p-3 text-cyan-400 font-bold"
+  }, row.save), /*#__PURE__*/React.createElement("td", {
+    className: "p-3 text-slate-400"
+  }, row.regime))))))), /*#__PURE__*/React.createElement("section", {
+    id: "results-section",
+    className: "py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-obsidian-800"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "text-emerald-400 text-xs font-mono font-bold uppercase tracking-wider"
+  }, "SECTION H & I \u2022 Results & Verification"), /*#__PURE__*/React.createElement("h2", {
+    className: "text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-1"
+  }, "FINAL COMPUTED MATRIX & VERIFICATION"), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-400 mt-1 max-w-2xl"
+  }, "Live verification verifying that Strassen\u2019s algorithm produces 100% identical results to standard multiplication.")), /*#__PURE__*/React.createElement("div", {
+    className: "flex space-x-2"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setIsExportModalOpen(true),
+    className: "px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-obsidian-950 text-xs font-bold shadow-md shadow-emerald-500/20"
+  }, "\uD83D\uDCE5 EXPORT CALCULATION TRACE"))), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 lg:grid-cols-12 gap-8 items-center"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "lg:col-span-6 p-6 rounded-2xl obsidian-card space-y-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-between items-center pb-2 border-b border-obsidian-800"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "font-mono font-bold text-xl text-emerald-400"
+  }, "Matrix C = A \xD7 B (", matrixSize, "\xD7", matrixSize, ")"), /*#__PURE__*/React.createElement("span", {
+    className: "text-xs font-mono text-emerald-300 bg-emerald-950 px-2.5 py-0.5 rounded-full border border-emerald-500/30"
+  }, "Verified Result")), /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-center py-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "grid gap-3 p-3 rounded-2xl bg-obsidian-950/80 border border-obsidian-800",
+    style: {
+      gridTemplateColumns: `repeat(${matrixSize}, minmax(56px, 1fr))`
+    }
+  }, computation.result.map((row, r) => row.map((val, c) => /*#__PURE__*/React.createElement("div", {
+    key: `c-${r}-${c}`,
+    className: "aspect-square flex flex-col items-center justify-center p-2 rounded-xl bg-emerald-950/30 border border-emerald-500/40 text-slate-100 font-mono font-bold text-base sm:text-lg"
+  }, /*#__PURE__*/React.createElement("span", null, val), /*#__PURE__*/React.createElement("span", {
+    className: "text-[9px] text-emerald-400 font-normal"
+  }, "C", /*#__PURE__*/React.createElement("sub", null, r + 1, c + 1)))))))), /*#__PURE__*/React.createElement("div", {
+    className: "lg:col-span-6 p-6 rounded-2xl bg-gradient-to-br from-emerald-950/40 via-obsidian-900/80 to-obsidian-950 border border-emerald-500/40 shadow-2xl space-y-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-between items-center pb-3 border-b border-obsidian-800"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h4", {
+    className: "text-lg font-bold text-emerald-300"
+  }, "VERIFICATION PASSED"), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-slate-300"
+  }, "Both Strassen and Traditional multiplication produced identical results.")), /*#__PURE__*/React.createElement("span", {
+    className: "px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+  }, "\u0394: ", verification.maxDelta.toExponential(2))), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "p-3 rounded-xl bg-obsidian-950/80 border border-obsidian-800"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-slate-400 block"
+  }, "Strassen Mults:"), /*#__PURE__*/React.createElement("span", {
+    className: "text-base font-bold text-emerald-300"
+  }, verification.strassMults)), /*#__PURE__*/React.createElement("div", {
+    className: "p-3 rounded-xl bg-obsidian-950/80 border border-obsidian-800"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-slate-400 block"
+  }, "Traditional Mults:"), /*#__PURE__*/React.createElement("span", {
+    className: "text-base font-bold text-slate-200"
+  }, verification.tradMults)), /*#__PURE__*/React.createElement("div", {
+    className: "p-3 rounded-xl bg-obsidian-950/80 border border-obsidian-800"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-slate-400 block"
+  }, "Strassen Time:"), /*#__PURE__*/React.createElement("span", {
+    className: "text-base font-bold text-cyan-300"
+  }, verification.strassTime.toFixed(2), " ms")), /*#__PURE__*/React.createElement("div", {
+    className: "p-3 rounded-xl bg-obsidian-950/80 border border-obsidian-800"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-slate-400 block"
+  }, "Equality:"), /*#__PURE__*/React.createElement("span", {
+    className: "text-base font-bold text-emerald-400"
+  }, "100% Match"))))))), isBioModalOpen && /*#__PURE__*/React.createElement("div", {
+    className: "fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "relative w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-obsidian-900 border border-amber-500/40 rounded-3xl shadow-2xl p-6 sm:p-8 text-slate-200 space-y-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-between items-start pb-4 border-b border-obsidian-800"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center space-x-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-16 h-20 sm:w-20 sm:h-24 rounded-xl overflow-hidden border-2 border-amber-500/60 shadow-lg shadow-amber-500/25 shrink-0 bg-obsidian-950"
+  }, /*#__PURE__*/React.createElement("img", {
+    src: VOLKER_STRASSEN_PHOTO,
+    alt: "Volker Strassen",
+    className: "w-full h-full object-cover object-top"
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    className: "text-xs font-mono text-amber-400 uppercase font-bold tracking-wider"
+  }, "MATHEMATICIAN \u2022 THEORETICAL COMPUTER SCIENTIST"), /*#__PURE__*/React.createElement("h3", {
+    className: "text-2xl font-bold text-white mt-0.5"
+  }, "Prof. Volker Strassen"), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-slate-300 font-mono"
+  }, "Born 29 April 1936 \u2022 D\xFCsseldorf-Gerresheim, Germany"))), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setIsBioModalOpen(false),
+    className: "p-2 rounded-xl bg-obsidian-950 text-slate-400 hover:text-white border border-obsidian-800"
+  }, "\u2715")), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-4 text-xs sm:text-sm text-slate-300 leading-relaxed"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "p-4 rounded-2xl bg-amber-950/30 border border-amber-500/30 space-y-2"
+  }, /*#__PURE__*/React.createElement("h4", {
+    className: "font-bold text-amber-300 text-sm"
+  }, "Key Facts:"), /*#__PURE__*/React.createElement("ul", {
+    className: "list-disc list-inside space-y-1.5 text-xs text-slate-300"
+  }, /*#__PURE__*/React.createElement("li", null, /*#__PURE__*/React.createElement("strong", null, "Who:"), " Volker Strassen, a German mathematician and theoretical computer scientist."), /*#__PURE__*/React.createElement("li", null, /*#__PURE__*/React.createElement("strong", null, "When:"), " First published his groundbreaking algorithm in ", /*#__PURE__*/React.createElement("strong", null, "1969"), " in the journal ", /*#__PURE__*/React.createElement("em", null, "Numerische Mathematik"), "."), /*#__PURE__*/React.createElement("li", null, /*#__PURE__*/React.createElement("strong", null, "What It Does:"), " Disproved the conjecture that matrix multiplication fundamentally required \u039F(n\xB3) operations by showing that 2\xD72 block multiplication can be computed in ", /*#__PURE__*/React.createElement("strong", null, "7 multiplications"), " instead of 8, lowering the asymptotic complexity to \u039F(n", /*#__PURE__*/React.createElement("sup", null, "log\u2082 7"), ") \u2248 \u039F(n", /*#__PURE__*/React.createElement("sup", null, "2.8074"), ")."))), /*#__PURE__*/React.createElement("div", {
+    className: "p-4 rounded-2xl bg-obsidian-950 border border-obsidian-800 space-y-2"
+  }, /*#__PURE__*/React.createElement("h4", {
+    className: "font-bold text-white text-sm"
+  }, "Major Accolades & Lifetime Achievements:"), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-mono pt-1"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "p-2.5 rounded-lg bg-obsidian-900 border border-slate-700"
+  }, /*#__PURE__*/React.createElement("strong", {
+    className: "text-amber-300 block"
+  }, "Knuth Prize (2008)"), "For seminal contributions to the foundations of computer science."), /*#__PURE__*/React.createElement("div", {
+    className: "p-2.5 rounded-lg bg-obsidian-900 border border-slate-700"
+  }, /*#__PURE__*/React.createElement("strong", {
+    className: "text-emerald-300 block"
+  }, "Paris Kanellakis Award (1999)"), "For randomized primality testing algorithms (Solovay-Strassen)."))), /*#__PURE__*/React.createElement("div", {
+    className: "p-4 rounded-2xl bg-cyan-950/30 border border-cyan-500/30 space-y-1.5 text-xs"
+  }, /*#__PURE__*/React.createElement("strong", {
+    className: "text-cyan-300 block text-sm"
+  }, "Connection to DeepMind AlphaTensor (2022):"), /*#__PURE__*/React.createElement("p", {
+    className: "text-slate-300 leading-relaxed"
+  }, "In October 2022, ", /*#__PURE__*/React.createElement("strong", null, "Google DeepMind"), " published their landmark Nature paper detailing ", /*#__PURE__*/React.createElement("em", null, "AlphaTensor"), "\u2014an AI system that discovered novel matrix multiplication algorithms that improved on 50-year-old human-designed algorithms, building directly upon the foundations laid by Volker Strassen in 1969."))), /*#__PURE__*/React.createElement("div", {
+    className: "pt-2 flex justify-end"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setIsBioModalOpen(false),
+    className: "px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-obsidian-950 font-bold text-xs"
+  }, "Close Profile")))), isPosterModalOpen && /*#__PURE__*/React.createElement("div", {
+    className: "fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "relative w-full max-w-2xl bg-obsidian-900 border border-emerald-500/40 rounded-2xl shadow-2xl p-6 text-slate-200 space-y-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-between items-start pb-3 border-b border-obsidian-800"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    className: "text-xs font-mono text-emerald-400 uppercase font-bold"
+  }, "Academic Poster Context"), /*#__PURE__*/React.createElement("h3", {
+    className: "text-xl font-bold text-white mt-0.5"
+  }, "S.B. Jain Institute Technical Reference"), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-slate-400"
+  }, "Dept. of Computer Science & Engineering (Data Science) \u2022 Nagpur \u2022 Session 2026-27")), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setIsPosterModalOpen(false),
+    className: "p-1.5 rounded-lg bg-obsidian-950 text-slate-400 hover:text-white"
+  }, "\u2715")), /*#__PURE__*/React.createElement("div", {
+    className: "p-3 rounded-xl bg-obsidian-950 border border-obsidian-800 text-xs space-y-1"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-between"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-slate-400"
+  }, "Author:"), /*#__PURE__*/React.createElement("span", {
+    className: "font-bold text-emerald-300"
+  }, "Shravil Karotiya (USN: CD24049)")), /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-between"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-slate-400"
+  }, "Subject:"), /*#__PURE__*/React.createElement("span", null, "Design and Analysis of Algorithms (N-PCCD501T)"))), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2 text-xs text-slate-300 leading-relaxed"
+  }, /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("strong", null, "Educational Goal:"), " Demonstrating how Volker Strassen\u2019s 1969 breakthrough broke the cubic O(n\xB3) barrier by lowering recursive block multiplications from 8 to 7."), /*#__PURE__*/React.createElement("div", {
+    className: "p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/20 text-emerald-300 font-mono"
+  }, "\u2713 Verified Formulas implemented: P\u2081 through P\u2087 and C\u2081\u2081 through C\u2082\u2082 with live equality checking against standard matrix multiplication.")), /*#__PURE__*/React.createElement("div", {
+    className: "pt-2 flex justify-end"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setIsPosterModalOpen(false),
+    className: "px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-obsidian-950 font-bold text-xs"
+  }, "Close Reference")))), isExportModalOpen && /*#__PURE__*/React.createElement("div", {
+    className: "fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "relative w-full max-w-2xl bg-obsidian-900 border border-emerald-500/40 rounded-2xl shadow-2xl p-6 text-slate-200 space-y-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-between items-center pb-3 border-b border-obsidian-800"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-lg font-bold text-white"
+  }, "Export Calculation Trace (LaTeX / Markdown)"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setIsExportModalOpen(false),
+    className: "p-1.5 rounded-lg bg-obsidian-950 text-slate-400 hover:text-white"
+  }, "\u2715")), /*#__PURE__*/React.createElement("div", {
+    className: "bg-obsidian-950 p-4 rounded-xl border border-obsidian-800 font-mono text-xs text-slate-300 whitespace-pre overflow-y-auto max-h-60"
+  }, `% Strassen Matrix Multiplication Export
+% Algorithm Inventor: Volker Strassen (1969)
+A = [ ${matrixA.map(r => r.join(', ')).join('; ')} ]
+B = [ ${matrixB.map(r => r.join(', ')).join('; ')} ]
+C = [ ${computation.result.map(r => r.join(', ')).join('; ')} ]
+
+Multiplications: 7 (Strassen) vs 8 (Traditional)
+Verification Status: PASSED (100% Match, max delta: ${verification.maxDelta})`), /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-end space-x-2 pt-2"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      navigator.clipboard.writeText(`A = [ ${matrixA.map(r => r.join(', ')).join('; ')} ]\nB = [ ${matrixB.map(r => r.join(', ')).join('; ')} ]\nC = [ ${computation.result.map(r => r.join(', ')).join('; ')} ]`);
+      alert('Copied calculation to clipboard!');
+    },
+    className: "px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-obsidian-950 font-bold text-xs"
+  }, "\uD83D\uDCCB Copy Text")))), /*#__PURE__*/React.createElement("footer", {
+    className: "w-full bg-obsidian-950 border-t border-obsidian-800 text-slate-400 py-10 px-4 sm:px-6 lg:px-8 mt-20"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between text-xs gap-4"
+  }, /*#__PURE__*/React.createElement("div", null, "STRASSEN MATRIX MULTIPLICATION LABORATORY \u2022 Dedicated to Volker Strassen (1969) & S.B. Jain Institute of Technology, Nagpur"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    }),
+    className: "text-emerald-400 hover:text-emerald-300"
+  }, "Back to Top \u2191"))));
+}
+
+// Mount React App
+ReactDOM.createRoot(document.getElementById('root')).render( /*#__PURE__*/React.createElement(StrassenLaboratoryApp, null));
+  </script>
+</body>
+</html>

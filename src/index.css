@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: #05070A;
+  color: #F8FAFC;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #071A36;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1E4D8C;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #38BDF8;
+}
+
+/* Glass & Neon Accents */
+.lab-glass {
+  background: rgba(7, 26, 54, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(56, 189, 248, 0.15);
+}
+
+.lab-glass-card {
+  background: rgba(12, 42, 82, 0.45);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(56, 189, 248, 0.12);
+}
+
+.lab-glow-border {
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.15);
+}
+
+.lab-glow-text {
+  text-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
+}
+
+/* Math symbols & fonts */
+.math-font {
+  font-family: 'JetBrains Mono', monospace;
+}
